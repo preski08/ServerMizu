@@ -91,7 +91,6 @@
                 <p class="text-gray-300 text-xs mb-1 relative z-10">⛏️ Sedang Menambang...</p>
                 <h3 id="pending-display" class="text-2xl font-bold text-purple-300 ticker-text relative z-10">0.00000000</h3>
                 <p class="text-[10px] text-gray-400 mt-1 relative z-10">Rate: 1 MZU / 24 Jam</p>
-                <!-- Tombol Klaim -->
                 <button id="claim-btn" onclick="claimCoin()" class="glow-btn w-full mt-3 bg-gradient-to-r from-purple-600 to-indigo-600 p-2 rounded-xl font-bold text-sm relative z-10">Klaim Koin</button>
                 <p id="max-accrual-msg" class="text-[10px] text-yellow-400 mt-2 hidden relative z-10">Maksimal akumulasi tercapai (24 Jam). Segera klaim!</p>
             </div>
@@ -130,24 +129,37 @@
     </div>
 
     <script>
-        // ==========================================
-        // PENTING: GANTI URL DI BAWAH INI
-        // Jika dijalankan di laptop, biarkan 'http://localhost:3000'
-        // Jika backend sudah di-deploy (Render/Railway), ganti dengan URL backend Anda
-        // Contoh: const API_BASE_URL = 'https://mizu-coin-api.onrender.com';
-        // ==========================================
-        const API_BASE_URL = 'http://localhost:3000'; 
+        // =====================================================================
+        // KARENA INI DI GITHUB PAGES (HANYA FRONTEND), KITA GUNAKAN LOCALSTORAGE
+        // SEBAGAI DATABASE SEMENTARA. DATA AKAN TERSIMPAN DI BROWSER HP ANDA.
+        // =====================================================================
 
-        let currentApiKey = '';
-        let currentToken = '';
-        let lastMinedTimestamp = 0;
-        let baseBalance = 0;
+        let currentUserKey = null; // Menyimpan username yang sedang login
         let tickerInterval = null;
 
         // Konstanta Rate (Harus sama dengan backend)
         const RATE_PER_SECOND = 1 / 86400; 
         const MAX_ACCRUAL_SECONDS = 86400;
 
+        // --- FUNGSI DATABASE LOCALSTORAGE ---
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('mizu_users')) || {};
+        }
+        function saveUsers(users) {
+            localStorage.setItem('mizu_users', JSON.stringify(users));
+        }
+        function getTransactions() {
+            return JSON.parse(localStorage.getItem('mizu_txs')) || [];
+        }
+        function saveTransactions(txs) {
+            localStorage.setItem('mizu_txs', JSON.stringify(txs));
+        }
+        function generateHash(text) {
+            // Hash sederhana untuk demo (Base64)
+            return btoa(text + Math.random().toString(36).substring(2));
+        }
+
+        // --- NAVIGASI UI ---
         function showRegister() {
             document.getElementById('login-view').classList.add('hidden');
             document.getElementById('register-view').classList.remove('hidden');
@@ -160,62 +172,59 @@
             document.getElementById('transfer-form').classList.toggle('hidden');
         }
 
-        async function register() {
-            const username = document.getElementById('reg-username').value;
+        // --- FITUR REGISTER ---
+        function register() {
+            const username = document.getElementById('reg-username').value.trim();
             const password = document.getElementById('reg-password').value;
 
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await res.json();
-                alert(data.message || data.error);
-                if (res.ok) showLogin();
-            } catch (error) {
-                alert("Gagal terhubung ke server. Pastikan backend sudah berjalan dan URL API benar.");
-                console.error(error);
-            }
+            if (!username || !password) return alert("Username dan Password tidak boleh kosong!");
+
+            let users = getUsers();
+            if (users[username]) return alert("Username sudah dipakai!");
+
+            const apiKey = generateHash(username + Date.now());
+            const token = generateHash(apiKey + "TOKEN");
+
+            users[username] = {
+                password: password, // Di demo ini password disimpan plain text
+                apiKey: apiKey,
+                token: token,
+                balance: 0,
+                lastMined: Date.now()
+            };
+
+            saveUsers(users);
+            alert("Registrasi berhasil! Silakan Login.");
+            showLogin();
         }
 
-        async function login() {
-            const username = document.getElementById('login-username').value;
+        // --- FITUR LOGIN ---
+        function login() {
+            const username = document.getElementById('login-username').value.trim();
             const password = document.getElementById('login-password').value;
 
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await res.json();
+            let users = getUsers();
+            const user = users[username];
 
-                if (res.ok) {
-                    currentApiKey = data.apiKey;
-                    currentToken = data.token;
-                    baseBalance = data.balance;
-                    lastMinedTimestamp = data.lastMined; // Dapatkan timestamp dari server
-
-                    document.getElementById('login-view').classList.add('hidden');
-                    document.getElementById('dashboard-view').classList.remove('hidden');
-                    document.getElementById('user-display').innerText = username;
-                    document.getElementById('api-display').innerText = currentApiKey;
-                    document.getElementById('token-display').innerText = currentToken;
-                    
-                    updateBalanceUI(baseBalance);
-                    startTicker(); // Mulai animasi angka berjalan
-                    loadHistory();
-                } else {
-                    alert(data.error);
-                }
-            } catch (error) {
-                alert("Gagal terhubung ke server. Pastikan backend sudah berjalan dan URL API benar.");
-                console.error(error);
+            if (!user || user.password !== password) {
+                return alert("ID atau Password salah!");
             }
+
+            currentUserKey = username;
+            
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            document.getElementById('user-display').innerText = username;
+            document.getElementById('api-display').innerText = user.apiKey;
+            document.getElementById('token-display').innerText = user.token;
+            
+            updateBalanceUI(user.balance);
+            startTicker();
+            loadHistory();
         }
 
         function logout() {
+            currentUserKey = null;
             location.reload();
         }
 
@@ -228,10 +237,13 @@
             if (tickerInterval) clearInterval(tickerInterval);
             
             tickerInterval = setInterval(() => {
+                let users = getUsers();
+                const user = users[currentUserKey];
+                if (!user) return;
+
                 const now = Date.now();
-                let elapsedSeconds = (now - lastMinedTimestamp) / 1000;
+                let elapsedSeconds = (now - user.lastMined) / 1000;
                 
-                // Batasi maksimal 24 jam
                 if (elapsedSeconds > MAX_ACCRUAL_SECONDS) {
                     elapsedSeconds = MAX_ACCRUAL_SECONDS;
                     document.getElementById('max-accrual-msg').classList.remove('hidden');
@@ -243,92 +255,113 @@
 
                 const pendingRewards = elapsedSeconds * RATE_PER_SECOND;
                 document.getElementById('pending-display').innerText = pendingRewards.toFixed(8);
-            }, 1000); // Update setiap 1 detik
+            }, 1000);
         }
 
         // --- FUNGSI KLAIM ---
-        async function claimCoin() {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/claim`, {
-                    method: 'POST',
-                    headers: { 'x-api-key': currentApiKey }
-                });
-                const data = await res.json();
-                
-                if (res.ok) {
-                    baseBalance = data.balance;
-                    updateBalanceUI(baseBalance);
-                    // Reset timestamp ke waktu sekarang
-                    lastMinedTimestamp = Date.now(); 
-                    document.getElementById('pending-display').innerText = "0.00000000";
-                    document.getElementById('max-accrual-msg').classList.add('hidden');
-                    document.getElementById('claim-btn').classList.remove('animate-pulse');
-                    loadHistory();
-                    alert(data.message);
-                } else {
-                    alert(data.error);
-                }
-            } catch (error) {
-                alert("Gagal klaim. Cek koneksi ke backend.");
+        function claimCoin() {
+            let users = getUsers();
+            const user = users[currentUserKey];
+            const now = Date.now();
+            
+            let elapsedSeconds = (now - user.lastMined) / 1000;
+            if (elapsedSeconds > MAX_ACCRUAL_SECONDS) elapsedSeconds = MAX_ACCRUAL_SECONDS;
+
+            const pendingRewards = elapsedSeconds * RATE_PER_SECOND;
+
+            if (pendingRewards <= 0.00000001) {
+                return alert("Belum ada koin yang terkumpul. Tunggu beberapa detik.");
             }
+
+            user.balance += pendingRewards;
+            user.lastMined = now;
+            users[currentUserKey] = user;
+            saveUsers(users);
+
+            // Catat transaksi
+            let txs = getTransactions();
+            txs.push({
+                type: "MINING",
+                to: currentUserKey,
+                amount: parseFloat(pendingRewards.toFixed(8)),
+                hash: generateHash(currentUserKey + now),
+                timestamp: new Date().toISOString()
+            });
+            saveTransactions(txs);
+
+            updateBalanceUI(user.balance);
+            document.getElementById('pending-display').innerText = "0.00000000";
+            document.getElementById('max-accrual-msg').classList.add('hidden');
+            document.getElementById('claim-btn').classList.remove('animate-pulse');
+            
+            loadHistory();
+            alert(`Klaim sukses! +${pendingRewards.toFixed(8)} MZU`);
         }
 
-        async function transferCoin() {
-            const toUsername = document.getElementById('tx-to').value;
-            const amount = document.getElementById('tx-amount').value;
+        // --- FUNGSI TRANSFER ---
+        function transferCoin() {
+            const toUsername = document.getElementById('tx-to').value.trim();
+            const amount = parseFloat(document.getElementById('tx-amount').value);
 
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/transfer`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'x-api-key': currentApiKey 
-                    },
-                    body: JSON.stringify({ toUsername, amount })
-                });
-                const data = await res.json();
-                alert(data.message || data.error);
-                if (res.ok) {
-                    baseBalance = data.sisaSaldo;
-                    updateBalanceUI(baseBalance);
-                    document.getElementById('tx-to').value = '';
-                    document.getElementById('tx-amount').value = '';
-                    showTransfer();
-                    loadHistory();
-                }
-            } catch (error) {
-                alert("Gagal transfer. Cek koneksi ke backend.");
-            }
+            if (!toUsername || isNaN(amount) || amount <= 0) return alert("Data transfer tidak valid!");
+
+            let users = getUsers();
+            const sender = users[currentUserKey];
+            const receiver = users[toUsername];
+
+            if (!receiver) return alert("Penerima tidak ditemukan!");
+            if (sender.balance < amount) return alert("Saldo tidak cukup!");
+
+            sender.balance -= amount;
+            receiver.balance += amount;
+            
+            users[currentUserKey] = sender;
+            users[toUsername] = receiver;
+            saveUsers(users);
+
+            // Catat transaksi
+            let txs = getTransactions();
+            txs.push({
+                type: "TRANSFER",
+                from: currentUserKey,
+                to: toUsername,
+                amount: amount,
+                hash: generateHash(currentUserKey + toUsername + amount + Date.now()),
+                timestamp: new Date().toISOString()
+            });
+            saveTransactions(txs);
+
+            updateBalanceUI(sender.balance);
+            document.getElementById('tx-to').value = '';
+            document.getElementById('tx-amount').value = '';
+            showTransfer();
+            loadHistory();
+            alert("Transfer berhasil!");
         }
 
-        async function loadHistory() {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/transactions`, {
-                    headers: { 'x-api-key': currentApiKey }
-                });
-                const data = await res.json();
-                const container = document.getElementById('tx-history');
-                
-                if (data.transactions.length === 0) {
-                    container.innerHTML = '<p class="text-gray-500 italic">Belum ada transaksi.</p>';
-                    return;
-                }
+        // --- FUNGSI RIWAYAT TRANSAKSI ---
+        function loadHistory() {
+            const txs = getTransactions();
+            const userTxs = txs.filter(tx => tx.from === currentUserKey || tx.to === currentUserKey).reverse();
+            const container = document.getElementById('tx-history');
+            
+            if (userTxs.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 italic">Belum ada transaksi.</p>';
+                return;
+            }
 
-                container.innerHTML = data.transactions.map(tx => `
-                    <div class="glass-card p-2 flex justify-between items-center">
-                        <div>
-                            <p class="font-bold ${tx.type === 'MINING' ? 'text-emerald-400' : 'text-purple-400'}">${tx.type}</p>
-                            <p class="text-[10px] text-gray-400">${new Date(tx.timestamp).toLocaleString()}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-bold">${tx.type === 'MINING' ? '+' : '-'}${tx.amount.toFixed(8)} MZU</p>
-                            <p class="text-[10px] text-gray-500 truncate w-20">${tx.hash.substring(0, 10)}...</p>
-                        </div>
+            container.innerHTML = userTxs.map(tx => `
+                <div class="glass-card p-2 flex justify-between items-center">
+                    <div>
+                        <p class="font-bold ${tx.type === 'MINING' ? 'text-emerald-400' : 'text-purple-400'}">${tx.type}</p>
+                        <p class="text-[10px] text-gray-400">${new Date(tx.timestamp).toLocaleString()}</p>
                     </div>
-                `).join('');
-            } catch (error) {
-                console.error("Gagal memuat riwayat", error);
-            }
+                    <div class="text-right">
+                        <p class="font-bold">${tx.type === 'MINING' ? '+' : '-'}${tx.amount.toFixed(8)} MZU</p>
+                        <p class="text-[10px] text-gray-500 truncate w-20">${tx.hash.substring(0, 10)}...</p>
+                    </div>
+                </div>
+            `).join('');
         }
     </script>
 </body>
