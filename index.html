@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mizu Coin - Developer API & Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: white; font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+        .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
+        .neon-text { text-shadow: 0 0 10px rgba(167, 139, 250, 0.8); }
+        .tab-active { border-bottom: 2px solid #a78bfa; color: #a78bfa; font-weight: bold; }
+        .code-block { background: #0f172a; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 11px; overflow-x: auto; border: 1px solid #334155; }
+        .glow-btn:hover { box-shadow: 0 0 20px rgba(167, 139, 250, 0.6); transform: translateY(-2px); transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+    <div class="glass-card w-full max-w-md p-6 relative z-10">
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-bold neon-text">Mizu Coin API</h1>
+            <p class="text-gray-400 text-xs">MZU • Developer Portal & Explorer</p>
+            <p class="text-[10px] text-emerald-400 mt-1">Total Supply: 500.000.000 MZU • Mining: 1 coin / 2 hari</p>
+        </div>
+
+        <!-- Navigasi Tab -->
+        <div class="flex justify-around mb-6 text-xs text-gray-400">
+            <button onclick="switchTab('dev')" id="tab-dev" class="tab-active pb-1">Developer</button>
+            <button onclick="switchTab('explorer')" id="tab-explorer" class="pb-1">Explorer</button>
+            <button onclick="switchTab('feed')" id="tab-feed" class="pb-1">Live Feed</button>
+        </div>
+
+        <!-- ================= TAB DEVELOPER ================= -->
+        <div id="view-dev">
+            <!-- Login/Register Form -->
+            <div id="dev-auth" class="space-y-3">
+                <h2 class="text-lg font-semibold text-center">Akses Developer</h2>
+                <input type="text" id="dev-user" placeholder="Username" class="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm" autocomplete="username">
+                <input type="password" id="dev-pass" placeholder="Password" class="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm" autocomplete="current-password">
+                <button onclick="loginDeveloper()" class="w-full bg-purple-600 p-3 rounded-xl font-bold text-sm glow-btn">Login</button>
+                <p class="text-center text-xs mt-2 text-gray-400">Belum punya akun? <span onclick="registerDeveloper()" class="text-emerald-400 cursor-pointer">Daftar Developer</span></p>
+            </div>
+
+            <!-- Dashboard Developer (Setelah Login) -->
+            <div id="dev-dashboard" class="hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-md font-bold text-emerald-400">Dashboard Developer</h2>
+                    <button onclick="logoutDeveloper()" class="text-[10px] bg-red-500/20 text-red-400 px-2 py-1 rounded-full">Logout</button>
+                </div>
+                
+                <div class="p-3 bg-white/5 rounded-xl break-all border border-emerald-500/30">
+                    <p class="text-[10px] text-gray-400">API Key (Header: x-api-key)</p>
+                    <p id="api-key-display" class="text-yellow-300 font-mono text-xs">-</p>
+                </div>
+                <div class="p-3 bg-white/5 rounded-xl break-all border border-purple-500/30">
+                    <p class="text-[10px] text-gray-400">Secret Token</p>
+                    <p id="token-display" class="text-purple-300 font-mono text-xs">-</p>
+                </div>
+
+                <!-- Dokumentasi API -->
+                <div class="mt-4">
+                    <h3 class="text-sm font-bold text-gray-300 mb-2">📚 Dokumentasi API</h3>
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <p class="text-emerald-400 font-bold">1. Generate Wallet</p>
+                            <p class="text-gray-400">POST /api/v1/wallet/create</p>
+                            <div class="code-block text-gray-300 mt-1">
+                                curl -X POST /api/v1/wallet/create \<br>
+                                -H "x-api-key: YOUR_API_KEY"
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-emerald-400 font-bold">2. Start Cloud Mining</p>
+                            <p class="text-gray-400">POST /api/v1/mining/start</p>
+                            <div class="code-block text-gray-300 mt-1">
+                                { "address": "mizu..." }
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-emerald-400 font-bold">3. Claim Mining</p>
+                            <p class="text-gray-400">POST /api/v1/mining/claim</p>
+                            <div class="code-block text-gray-300 mt-1">
+                                { "address": "mizu..." }
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-emerald-400 font-bold">4. Transfer Cepat</p>
+                            <p class="text-gray-400">POST /api/v1/transfer</p>
+                            <div class="code-block text-gray-300 mt-1">
+                                { "fromAddress": "mizu...", "toAddress": "mizu...", "amount": 0.5 }
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-emerald-400 font-bold">5. Cek Status Mining</p>
+                            <p class="text-gray-400">GET /api/v1/mining/status?address=mizu...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB EXPLORER ================= -->
+        <div id="view-explorer" class="hidden">
+            <h2 class="text-lg font-semibold mb-3">🔍 Cari TX / Alamat</h2>
+            <input type="text" id="search-query" placeholder="Masukkan Hash TX atau Alamat Dompet" class="w-full p-3 mb-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm">
+            <button onclick="searchBlockchain()" class="w-full bg-cyan-600 p-3 rounded-xl font-bold text-sm glow-btn">Cari</button>
+            <div id="search-result" class="mt-4 text-xs break-all p-3 bg-white/5 rounded-xl hidden"></div>
+
+            <div class="mt-4">
+                <button onclick="loadStats()" class="w-full bg-indigo-600/50 p-2 rounded-xl text-xs">Lihat Stats Blockchain</button>
+                <div id="stats-result" class="mt-2 text-xs p-3 bg-white/5 rounded-xl hidden"></div>
+            </div>
+        </div>
+
+        <!-- ================= TAB LIVE FEED ================= -->
+        <div id="view-feed" class="hidden">
+            <h2 class="text-lg font-semibold mb-3">📡 Real-time Transaksi</h2>
+            <div id="live-feed" class="space-y-2 max-h-80 overflow-y-auto text-xs">
+                <p class="text-gray-500 italic">Menunggu transaksi masuk...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Otomatis pakai origin yang sama (karena frontend & backend 1 server)
+        const API_URL = window.location.origin;
+
+        let currentApiKey = null;
+        let eventSource = null;
+
+        // --- NAVIGASI TAB ---
+        function switchTab(tab) {
+            ['dev', 'explorer', 'feed'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('tab-active');
+            });
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.add('tab-active');
+
+            if (tab === 'feed' && !eventSource) {
+                startLiveFeed();
+            }
+        }
+
+        // --- 1. DEVELOPER AUTH ---
+        async function registerDeveloper() {
+            const username = prompt("Masukkan Username Developer (min 3 karakter):");
+            const password = prompt("Masukkan Password (min 4 karakter):");
+            if (!username || !password) return;
+
+            try {
+                const res = await fetch(`${API_URL}/api/developer/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (data.error) return alert(data.error);
+                
+                alert(`Registrasi Berhasil!\n\nAPI Key: ${data.apiKey}\nToken: ${data.token}\n\nSimpan informasi ini dengan aman!`);
+                document.getElementById('dev-user').value = username;
+                document.getElementById('dev-pass').value = password;
+                loginDeveloperWithCreds(username, password);
+            } catch (err) {
+                alert('Gagal connect ke server. Pastikan backend sudah jalan.\n\nError: ' + err.message);
+            }
+        }
+
+        async function loginDeveloper() {
+            const username = document.getElementById('dev-user').value.trim();
+            const password = document.getElementById('dev-pass').value;
+            if (!username || !password) return alert('Isi username dan password');
+            loginDeveloperWithCreds(username, password);
+        }
+
+        async function loginDeveloperWithCreds(username, password) {
+            try {
+                const res = await fetch(`${API_URL}/api/developer/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (data.error) return alert(data.error);
+
+                currentApiKey = data.apiKey;
+                localStorage.setItem('mizu_api_key', data.apiKey);
+                localStorage.setItem('mizu_token', data.token);
+                localStorage.setItem('mizu_user', username);
+
+                document.getElementById('dev-auth').classList.add('hidden');
+                document.getElementById('dev-dashboard').classList.remove('hidden');
+                document.getElementById('api-key-display').innerText = data.apiKey;
+                document.getElementById('token-display').innerText = data.token;
+            } catch (err) {
+                alert('Gagal connect ke server. Pastikan backend sudah jalan.\n\nError: ' + err.message);
+            }
+        }
+
+        function logoutDeveloper() {
+            currentApiKey = null;
+            localStorage.removeItem('mizu_api_key');
+            localStorage.removeItem('mizu_token');
+            localStorage.removeItem('mizu_user');
+            location.reload();
+        }
+
+        // Auto-login jika sudah pernah login
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedKey = localStorage.getItem('mizu_api_key');
+            const savedToken = localStorage.getItem('mizu_token');
+            if (savedKey && savedToken) {
+                currentApiKey = savedKey;
+                document.getElementById('dev-auth').classList.add('hidden');
+                document.getElementById('dev-dashboard').classList.remove('hidden');
+                document.getElementById('api-key-display').innerText = savedKey;
+                document.getElementById('token-display').innerText = savedToken;
+            }
+        });
+
+        // --- 2. EXPLORER ---
+        async function searchBlockchain() {
+            const query = document.getElementById('search-query').value.trim();
+            if (!query) return;
+            
+            try {
+                const res = await fetch(`${API_URL}/api/explorer/search?query=${encodeURIComponent(query)}`);
+                const data = await res.json();
+                const container = document.getElementById('search-result');
+                container.classList.remove('hidden');
+
+                if (data.error) {
+                    container.innerHTML = `<p class="text-red-400">${data.error}</p>`;
+                    return;
+                }
+
+                if (data.type === 'transaction') {
+                    container.innerHTML = `
+                        <p class="text-emerald-400 font-bold mb-1">Transaksi Ditemukan</p>
+                        <p><span class="text-gray-400">Hash:</span> ${data.data.hash}</p>
+                        <p><span class="text-gray-400">Dari:</span> ${data.data.from || 'Mining'}</p>
+                        <p><span class="text-gray-400">Ke:</span> ${data.data.to}</p>
+                        <p><span class="text-gray-400">Jumlah:</span> ${data.data.amount} MZU</p>
+                        <p><span class="text-gray-400">Waktu:</span> ${new Date(data.data.timestamp).toLocaleString()}</p>
+                    `;
+                } else if (data.type === 'wallet') {
+                    container.innerHTML = `
+                        <p class="text-purple-400 font-bold mb-1">Wallet Ditemukan</p>
+                        <p><span class="text-gray-400">Alamat:</span> ${data.data.address}</p>
+                        <p><span class="text-gray-400">Saldo:</span> ${data.data.balance} MZU</p>
+                        <p><span class="text-gray-400">Status Mining:</span> ${data.data.miningStatus ? 'Aktif' : 'Nonaktif'}</p>
+                        <p><span class="text-gray-400">Total TX:</span> ${data.data.totalTx}</p>
+                    `;
+                }
+            } catch (err) {
+                alert('Gagal connect ke server: ' + err.message);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch(`${API_URL}/api/explorer/stats`);
+                const data = await res.json();
+                const container = document.getElementById('stats-result');
+                container.classList.remove('hidden');
+                container.innerHTML = `
+                    <p><span class="text-gray-400">Total Supply:</span> ${data.totalSupply.toLocaleString()} MZU</p>
+                    <p><span class="text-gray-400">Sudah Mined:</span> ${data.totalMined} MZU</p>
+                    <p><span class="text-gray-400">Sisa Supply:</span> ${data.remainingSupply.toLocaleString()} MZU</p>
+                    <p><span class="text-gray-400">Total Wallet:</span> ${data.totalWallets}</p>
+                    <p><span class="text-gray-400">Total TX:</span> ${data.totalTransactions}</p>
+                    <p><span class="text-gray-400">Developers:</span> ${data.totalDevelopers}</p>
+                    <p><span class="text-gray-400">Rate:</span> ${data.miningRate}</p>
+                `;
+            } catch (err) {
+                alert('Gagal load stats: ' + err.message);
+            }
+        }
+
+        // --- 3. LIVE FEED (Real-time) ---
+        function startLiveFeed() {
+            eventSource = new EventSource(`${API_URL}/api/explorer/feed`);
+            const feedContainer = document.getElementById('live-feed');
+            let isFirst = true;
+
+            eventSource.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (isFirst) {
+                    feedContainer.innerHTML = '';
+                    isFirst = false;
+                }
+
+                if (data.event === 'new_tx') {
+                    const tx = data.data;
+                    const div = document.createElement('div');
+                    div.className = 'p-2 bg-white/5 rounded-lg border border-white/10';
+                    div.innerHTML = `
+                        <p class="font-bold ${tx.type === 'MINING' ? 'text-emerald-400' : 'text-purple-400'}">${tx.type}</p>
+                        <p class="text-[10px] text-gray-400">${tx.from ? 'Dari: ' + tx.from.substring(0,12) + '...' : ''} Ke: ${tx.to.substring(0,12)}...</p>
+                        <p class="text-[10px] text-yellow-300">${tx.amount} MZU</p>
+                    `;
+                    feedContainer.prepend(div);
+                }
+            };
+
+            eventSource.onerror = () => {
+                feedContainer.innerHTML = '<p class="text-red-400">Koneksi live feed terputus. Refresh halaman.</p>';
+            };
+        }
+    </script>
+</body>
+</html>
