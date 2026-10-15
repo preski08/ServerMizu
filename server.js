@@ -1,10 +1,12 @@
 const express = require('express');
 const crypto = require('crypto');
 const bodyParser = require('body-parser');
+const cors = require('cors'); // Tambahkan ini
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Gunakan process.env.PORT untuk hosting
 
+app.use(cors()); // Izinkan akses dari domain lain (GitHub Pages)
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
@@ -158,5 +160,5 @@ app.get('/api/transactions', authenticate, (req, res) => {
 
 // Jalankan Server
 app.listen(PORT, () => {
-    console.log(`Server Mizu Coin berjalan di http://localhost:${PORT}`);
+    console.log(`Server Mizu Coin berjalan di port ${PORT}`);
 });
