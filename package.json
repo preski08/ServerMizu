@@ -1,0 +1,14 @@
+{
+  "name": "mizu-coin-server",
+  "version": "1.0.0",
+  "description": "Server API untuk koin Mizu (MZU)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "crypto": "^1.0.1",
+    "body-parser": "^1.20.2"
+  }
+}
