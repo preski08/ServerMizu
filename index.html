@@ -130,6 +130,14 @@
     </div>
 
     <script>
+        // ==========================================
+        // PENTING: GANTI URL DI BAWAH INI
+        // Jika dijalankan di laptop, biarkan 'http://localhost:3000'
+        // Jika backend sudah di-deploy (Render/Railway), ganti dengan URL backend Anda
+        // Contoh: const API_BASE_URL = 'https://mizu-coin-api.onrender.com';
+        // ==========================================
+        const API_BASE_URL = 'http://localhost:3000'; 
+
         let currentApiKey = '';
         let currentToken = '';
         let lastMinedTimestamp = 0;
@@ -156,44 +164,54 @@
             const username = document.getElementById('reg-username').value;
             const password = document.getElementById('reg-password').value;
 
-            const res = await fetch('/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await res.json();
-            alert(data.message || data.error);
-            if (res.ok) showLogin();
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                alert(data.message || data.error);
+                if (res.ok) showLogin();
+            } catch (error) {
+                alert("Gagal terhubung ke server. Pastikan backend sudah berjalan dan URL API benar.");
+                console.error(error);
+            }
         }
 
         async function login() {
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
 
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await res.json();
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
 
-            if (res.ok) {
-                currentApiKey = data.apiKey;
-                currentToken = data.token;
-                baseBalance = data.balance;
-                lastMinedTimestamp = data.lastMined; // Dapatkan timestamp dari server
+                if (res.ok) {
+                    currentApiKey = data.apiKey;
+                    currentToken = data.token;
+                    baseBalance = data.balance;
+                    lastMinedTimestamp = data.lastMined; // Dapatkan timestamp dari server
 
-                document.getElementById('login-view').classList.add('hidden');
-                document.getElementById('dashboard-view').classList.remove('hidden');
-                document.getElementById('user-display').innerText = username;
-                document.getElementById('api-display').innerText = currentApiKey;
-                document.getElementById('token-display').innerText = currentToken;
-                
-                updateBalanceUI(baseBalance);
-                startTicker(); // Mulai animasi angka berjalan
-                loadHistory();
-            } else {
-                alert(data.error);
+                    document.getElementById('login-view').classList.add('hidden');
+                    document.getElementById('dashboard-view').classList.remove('hidden');
+                    document.getElementById('user-display').innerText = username;
+                    document.getElementById('api-display').innerText = currentApiKey;
+                    document.getElementById('token-display').innerText = currentToken;
+                    
+                    updateBalanceUI(baseBalance);
+                    startTicker(); // Mulai animasi angka berjalan
+                    loadHistory();
+                } else {
+                    alert(data.error);
+                }
+            } catch (error) {
+                alert("Gagal terhubung ke server. Pastikan backend sudah berjalan dan URL API benar.");
+                console.error(error);
             }
         }
 
@@ -230,24 +248,28 @@
 
         // --- FUNGSI KLAIM ---
         async function claimCoin() {
-            const res = await fetch('/api/claim', {
-                method: 'POST',
-                headers: { 'x-api-key': currentApiKey }
-            });
-            const data = await res.json();
-            
-            if (res.ok) {
-                baseBalance = data.balance;
-                updateBalanceUI(baseBalance);
-                // Reset timestamp ke waktu sekarang
-                lastMinedTimestamp = Date.now(); 
-                document.getElementById('pending-display').innerText = "0.00000000";
-                document.getElementById('max-accrual-msg').classList.add('hidden');
-                document.getElementById('claim-btn').classList.remove('animate-pulse');
-                loadHistory();
-                alert(data.message);
-            } else {
-                alert(data.error);
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/claim`, {
+                    method: 'POST',
+                    headers: { 'x-api-key': currentApiKey }
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    baseBalance = data.balance;
+                    updateBalanceUI(baseBalance);
+                    // Reset timestamp ke waktu sekarang
+                    lastMinedTimestamp = Date.now(); 
+                    document.getElementById('pending-display').innerText = "0.00000000";
+                    document.getElementById('max-accrual-msg').classList.add('hidden');
+                    document.getElementById('claim-btn').classList.remove('animate-pulse');
+                    loadHistory();
+                    alert(data.message);
+                } else {
+                    alert(data.error);
+                }
+            } catch (error) {
+                alert("Gagal klaim. Cek koneksi ke backend.");
             }
         }
 
@@ -255,50 +277,58 @@
             const toUsername = document.getElementById('tx-to').value;
             const amount = document.getElementById('tx-amount').value;
 
-            const res = await fetch('/api/transfer', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'x-api-key': currentApiKey 
-                },
-                body: JSON.stringify({ toUsername, amount })
-            });
-            const data = await res.json();
-            alert(data.message || data.error);
-            if (res.ok) {
-                baseBalance = data.sisaSaldo;
-                updateBalanceUI(baseBalance);
-                document.getElementById('tx-to').value = '';
-                document.getElementById('tx-amount').value = '';
-                showTransfer();
-                loadHistory();
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/transfer`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-api-key': currentApiKey 
+                    },
+                    body: JSON.stringify({ toUsername, amount })
+                });
+                const data = await res.json();
+                alert(data.message || data.error);
+                if (res.ok) {
+                    baseBalance = data.sisaSaldo;
+                    updateBalanceUI(baseBalance);
+                    document.getElementById('tx-to').value = '';
+                    document.getElementById('tx-amount').value = '';
+                    showTransfer();
+                    loadHistory();
+                }
+            } catch (error) {
+                alert("Gagal transfer. Cek koneksi ke backend.");
             }
         }
 
         async function loadHistory() {
-            const res = await fetch('/api/transactions', {
-                headers: { 'x-api-key': currentApiKey }
-            });
-            const data = await res.json();
-            const container = document.getElementById('tx-history');
-            
-            if (data.transactions.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 italic">Belum ada transaksi.</p>';
-                return;
-            }
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/transactions`, {
+                    headers: { 'x-api-key': currentApiKey }
+                });
+                const data = await res.json();
+                const container = document.getElementById('tx-history');
+                
+                if (data.transactions.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 italic">Belum ada transaksi.</p>';
+                    return;
+                }
 
-            container.innerHTML = data.transactions.map(tx => `
-                <div class="glass-card p-2 flex justify-between items-center">
-                    <div>
-                        <p class="font-bold ${tx.type === 'MINING' ? 'text-emerald-400' : 'text-purple-400'}">${tx.type}</p>
-                        <p class="text-[10px] text-gray-400">${new Date(tx.timestamp).toLocaleString()}</p>
+                container.innerHTML = data.transactions.map(tx => `
+                    <div class="glass-card p-2 flex justify-between items-center">
+                        <div>
+                            <p class="font-bold ${tx.type === 'MINING' ? 'text-emerald-400' : 'text-purple-400'}">${tx.type}</p>
+                            <p class="text-[10px] text-gray-400">${new Date(tx.timestamp).toLocaleString()}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold">${tx.type === 'MINING' ? '+' : '-'}${tx.amount.toFixed(8)} MZU</p>
+                            <p class="text-[10px] text-gray-500 truncate w-20">${tx.hash.substring(0, 10)}...</p>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <p class="font-bold">${tx.type === 'MINING' ? '+' : '-'}${tx.amount.toFixed(8)} MZU</p>
-                        <p class="text-[10px] text-gray-500 truncate w-20">${tx.hash.substring(0, 10)}...</p>
-                    </div>
-                </div>
-            `).join('');
+                `).join('');
+            } catch (error) {
+                console.error("Gagal memuat riwayat", error);
+            }
         }
     </script>
 </body>
