@@ -3,365 +3,294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mizu Coin - Dashboard</title>
+    <title>Mizu Coin - Web3 Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-        .neon-text {
-            text-shadow: 0 0 10px rgba(167, 139, 250, 0.8), 0 0 20px rgba(167, 139, 250, 0.5);
-        }
-        .glow-btn {
-            transition: all 0.3s ease;
-        }
-        .glow-btn:hover {
-            box-shadow: 0 0 20px rgba(167, 139, 250, 0.6);
-            transform: translateY(-2px);
-        }
-        .ticker-text {
-            font-variant-numeric: tabular-nums;
-            letter-spacing: 1px;
-        }
+        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: white; font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+        .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
+        .neon-text { text-shadow: 0 0 10px rgba(167, 139, 250, 0.8); }
+        .glow-btn:hover { box-shadow: 0 0 20px rgba(167, 139, 250, 0.6); transform: translateY(-2px); transition: all 0.3s ease; }
+        .tab-active { border-bottom: 2px solid #a78bfa; color: #a78bfa; }
     </style>
 </head>
 <body class="flex items-center justify-center p-4">
 
-    <!-- Background Ornamen -->
-    <div class="fixed top-10 left-10 w-32 h-32 bg-emerald-500 rounded-full blur-[100px] opacity-30"></div>
-    <div class="fixed bottom-10 right-10 w-48 h-48 bg-purple-500 rounded-full blur-[100px] opacity-30"></div>
-
-    <div class="glass-card w-full max-w-md p-8 relative z-10">
-        
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold neon-text mb-2">Mizu Coin</h1>
-            <p class="text-gray-400 text-sm">MZU • SHA-256 Network</p>
+    <div class="glass-card w-full max-w-md p-6 relative z-10">
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-bold neon-text">Mizu Coin</h1>
+            <p class="text-gray-400 text-xs">MZU • SHA-256 Network</p>
         </div>
 
-        <!-- Tampilan Login -->
-        <div id="login-view">
-            <h2 class="text-xl font-semibold mb-4 text-center">Masuk ke Akun</h2>
-            <input type="text" id="login-username" placeholder="ID / Username" class="w-full p-3 mb-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:border-purple-400 text-white">
-            <input type="password" id="login-password" placeholder="Password" class="w-full p-3 mb-6 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:border-purple-400 text-white">
-            <button onclick="login()" class="glow-btn w-full bg-gradient-to-r from-purple-600 to-emerald-600 p-3 rounded-xl font-bold">Login</button>
-            <p class="text-center text-sm mt-4 text-gray-400">Belum punya akun? <span onclick="showRegister()" class="text-emerald-400 cursor-pointer">Daftar</span></p>
+        <!-- Navigasi Tab -->
+        <div class="flex justify-around mb-6 text-sm font-bold text-gray-400">
+            <button onclick="switchTab('wallet')" id="tab-wallet" class="tab-active pb-1">Wallet</button>
+            <button onclick="switchTab('mining')" id="tab-mining" class="pb-1">Mining</button>
+            <button onclick="switchTab('explorer')" id="tab-explorer" class="pb-1">Explorer</button>
+            <button onclick="switchTab('feed')" id="tab-feed" class="pb-1">Live Feed</button>
         </div>
 
-        <!-- Tampilan Register -->
-        <div id="register-view" class="hidden">
-            <h2 class="text-xl font-semibold mb-4 text-center">Buat Akun Baru</h2>
-            <input type="text" id="reg-username" placeholder="Username Baru" class="w-full p-3 mb-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:border-purple-400 text-white">
-            <input type="password" id="reg-password" placeholder="Password" class="w-full p-3 mb-6 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:border-purple-400 text-white">
-            <button onclick="register()" class="glow-btn w-full bg-gradient-to-r from-emerald-600 to-cyan-600 p-3 rounded-xl font-bold">Daftar</button>
-            <p class="text-center text-sm mt-4 text-gray-400">Sudah punya akun? <span onclick="showLogin()" class="text-purple-400 cursor-pointer">Login</span></p>
-        </div>
+        <!-- ================= TAB WALLET ================= -->
+        <div id="view-wallet">
+            <div id="wallet-login" class="space-y-3">
+                <h2 class="text-lg font-semibold text-center">Akses Wallet</h2>
+                <input type="text" id="login-user" placeholder="Username" class="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white">
+                <input type="password" id="login-pass" placeholder="Password" class="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white">
+                <button onclick="login()" class="w-full bg-purple-600 p-3 rounded-xl font-bold">Login</button>
+                <p class="text-center text-xs mt-2 text-gray-400">Belum punya? <span onclick="generateWallet()" class="text-emerald-400 cursor-pointer">Generate Wallet</span></p>
+            </div>
 
-        <!-- Tampilan Dashboard -->
-        <div id="dashboard-view" class="hidden">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <p class="text-gray-400 text-sm">Selamat datang,</p>
-                    <h3 id="user-display" class="text-lg font-bold text-emerald-400">User</h3>
+            <div id="wallet-info" class="hidden space-y-4">
+                <div class="p-3 bg-white/5 rounded-xl break-all">
+                    <p class="text-[10px] text-gray-400">Alamat Dompet:</p>
+                    <p id="display-address" class="text-emerald-300 font-mono text-xs">-</p>
                 </div>
-                <button onclick="logout()" class="text-xs bg-red-500/20 text-red-400 px-3 py-1 rounded-full border border-red-500/30">Keluar</button>
-            </div>
-
-            <!-- Kartu Saldo Utama -->
-            <div class="glass-card p-6 mb-4 text-center border-t-2 border-emerald-400/50">
-                <p class="text-gray-400 text-sm mb-1">Saldo Utama (MZU)</p>
-                <h2 id="balance-display" class="text-4xl font-bold neon-text ticker-text">0.00000000</h2>
-            </div>
-
-            <!-- Kartu Akumulasi (Live Ticker) -->
-            <div class="glass-card p-4 mb-6 text-center border border-purple-500/30 relative overflow-hidden">
-                <div class="absolute inset-0 bg-purple-500/10 animate-pulse"></div>
-                <p class="text-gray-300 text-xs mb-1 relative z-10">⛏️ Sedang Menambang...</p>
-                <h3 id="pending-display" class="text-2xl font-bold text-purple-300 ticker-text relative z-10">0.00000000</h3>
-                <p class="text-[10px] text-gray-400 mt-1 relative z-10">Rate: 1 MZU / 24 Jam</p>
-                <button id="claim-btn" onclick="claimCoin()" class="glow-btn w-full mt-3 bg-gradient-to-r from-purple-600 to-indigo-600 p-2 rounded-xl font-bold text-sm relative z-10">Klaim Koin</button>
-                <p id="max-accrual-msg" class="text-[10px] text-yellow-400 mt-2 hidden relative z-10">Maksimal akumulasi tercapai (24 Jam). Segera klaim!</p>
-            </div>
-
-            <!-- Info API & Token -->
-            <div class="glass-card p-4 mb-6 text-xs break-all">
-                <p class="text-gray-400 mb-1">API Key:</p>
-                <p id="api-display" class="text-emerald-300 font-mono mb-2">-</p>
-                <p class="text-gray-400 mb-1">Token:</p>
-                <p id="token-display" class="text-purple-300 font-mono">-</p>
-            </div>
-
-            <!-- Tombol Transfer -->
-            <div class="mb-4">
-                <button onclick="showTransfer()" class="glow-btn w-full bg-gradient-to-br from-purple-500 to-indigo-700 p-3 rounded-2xl font-bold flex items-center justify-center gap-2">
-                    <span>💸</span> Transfer Koin
-                </button>
-            </div>
-
-            <!-- Form Transfer -->
-            <div id="transfer-form" class="hidden glass-card p-4 mb-4">
-                <h4 class="font-bold mb-2 text-sm">Transfer Mizu</h4>
-                <input type="text" id="tx-to" placeholder="Username Penerima" class="w-full p-2 mb-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white">
-                <input type="number" id="tx-amount" placeholder="Jumlah MZU" class="w-full p-2 mb-3 rounded-lg bg-white/5 border border-white/10 text-sm text-white">
-                <button onclick="transferCoin()" class="w-full bg-purple-600 p-2 rounded-lg text-sm font-bold">Kirim</button>
-            </div>
-
-            <!-- Riwayat Transaksi -->
-            <div class="mt-4">
-                <h4 class="font-bold mb-2 text-sm text-gray-300">Riwayat Transaksi</h4>
-                <div id="tx-history" class="space-y-2 max-h-40 overflow-y-auto text-xs">
-                    <p class="text-gray-500 italic">Belum ada transaksi.</p>
+                <div class="p-3 bg-white/5 rounded-xl break-all">
+                    <p class="text-[10px] text-gray-400">API Key:</p>
+                    <p id="display-apikey" class="text-yellow-300 font-mono text-xs">-</p>
                 </div>
+                <div class="p-3 bg-white/5 rounded-xl break-all">
+                    <p class="text-[10px] text-gray-400">Token:</p>
+                    <p id="display-token" class="text-purple-300 font-mono text-xs">-</p>
+                </div>
+                <div class="text-center p-4 bg-emerald-500/10 rounded-xl border border-emerald-500/30">
+                    <p class="text-xs text-gray-400">Saldo Utama</p>
+                    <h2 id="display-balance" class="text-3xl font-bold neon-text">0.00000000</h2>
+                </div>
+                <button onclick="logout()" class="w-full bg-red-500/20 text-red-400 p-2 rounded-xl text-sm border border-red-500/30">Keluar</button>
             </div>
         </div>
+
+        <!-- ================= TAB MINING ================= -->
+        <div id="view-mining" class="hidden">
+            <div class="text-center p-4 bg-purple-500/10 rounded-xl border border-purple-500/30 mb-4">
+                <p class="text-xs text-gray-400 mb-1">Status Cloud Mining</p>
+                <h3 id="mining-status" class="text-xl font-bold text-purple-300">OFFLINE</h3>
+                <p class="text-[10px] text-gray-400 mt-1">Rate: 1 MZU / 24 Jam</p>
+            </div>
+            
+            <div class="text-center p-4 mb-4">
+                <p class="text-xs text-gray-400">Pending Rewards</p>
+                <h2 id="pending-rewards" class="text-2xl font-bold text-emerald-300">0.00000000</h2>
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="startMining()" class="flex-1 bg-emerald-600 p-3 rounded-xl font-bold text-sm">Mulai Mining</button>
+                <button onclick="stopMining()" class="flex-1 bg-red-600 p-3 rounded-xl font-bold text-sm">Stop</button>
+            </div>
+            <button onclick="claimMining()" class="w-full mt-3 bg-gradient-to-r from-purple-600 to-indigo-600 p-3 rounded-xl font-bold text-sm">Klaim Koin</button>
+        </div>
+
+        <!-- ================= TAB EXPLORER ================= -->
+        <div id="view-explorer" class="hidden">
+            <h2 class="text-lg font-semibold mb-3">🔍 Cari TX / Alamat</h2>
+            <input type="text" id="search-query" placeholder="Masukkan Hash TX atau Alamat Dompet" class="w-full p-3 mb-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm">
+            <button onclick="searchBlockchain()" class="w-full bg-cyan-600 p-3 rounded-xl font-bold text-sm">Cari</button>
+            <div id="search-result" class="mt-4 text-xs break-all p-3 bg-white/5 rounded-xl hidden"></div>
+        </div>
+
+        <!-- ================= TAB LIVE FEED ================= -->
+        <div id="view-feed" class="hidden">
+            <h2 class="text-lg font-semibold mb-3">📡 Real-time Transaksi</h2>
+            <div id="live-feed" class="space-y-2 max-h-80 overflow-y-auto text-xs">
+                <p class="text-gray-500 italic">Menunggu transaksi masuk...</p>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // =====================================================================
-        // KARENA INI DI GITHUB PAGES (HANYA FRONTEND), KITA GUNAKAN LOCALSTORAGE
-        // SEBAGAI DATABASE SEMENTARA. DATA AKAN TERSIMPAN DI BROWSER HP ANDA.
-        // =====================================================================
-
-        let currentUserKey = null; // Menyimpan username yang sedang login
+        // GANTI DENGAN URL BACKEND ANDA (Misal: https://api-mizu.onrender.com)
+        const API_URL = 'http://localhost:3000'; 
+        let currentApiKey = null;
         let tickerInterval = null;
+        let eventSource = null;
 
-        // Konstanta Rate (Harus sama dengan backend)
-        const RATE_PER_SECOND = 1 / 86400; 
-        const MAX_ACCRUAL_SECONDS = 86400;
+        // --- NAVIGASI TAB ---
+        function switchTab(tab) {
+            ['wallet', 'mining', 'explorer', 'feed'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('tab-active');
+            });
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.add('tab-active');
 
-        // --- FUNGSI DATABASE LOCALSTORAGE ---
-        function getUsers() {
-            return JSON.parse(localStorage.getItem('mizu_users')) || {};
-        }
-        function saveUsers(users) {
-            localStorage.setItem('mizu_users', JSON.stringify(users));
-        }
-        function getTransactions() {
-            return JSON.parse(localStorage.getItem('mizu_txs')) || [];
-        }
-        function saveTransactions(txs) {
-            localStorage.setItem('mizu_txs', JSON.stringify(txs));
-        }
-        function generateHash(text) {
-            // Hash sederhana untuk demo (Base64)
-            return btoa(text + Math.random().toString(36).substring(2));
-        }
-
-        // --- NAVIGASI UI ---
-        function showRegister() {
-            document.getElementById('login-view').classList.add('hidden');
-            document.getElementById('register-view').classList.remove('hidden');
-        }
-        function showLogin() {
-            document.getElementById('register-view').classList.add('hidden');
-            document.getElementById('login-view').classList.remove('hidden');
-        }
-        function showTransfer() {
-            document.getElementById('transfer-form').classList.toggle('hidden');
-        }
-
-        // --- FITUR REGISTER ---
-        function register() {
-            const username = document.getElementById('reg-username').value.trim();
-            const password = document.getElementById('reg-password').value;
-
-            if (!username || !password) return alert("Username dan Password tidak boleh kosong!");
-
-            let users = getUsers();
-            if (users[username]) return alert("Username sudah dipakai!");
-
-            const apiKey = generateHash(username + Date.now());
-            const token = generateHash(apiKey + "TOKEN");
-
-            users[username] = {
-                password: password, // Di demo ini password disimpan plain text
-                apiKey: apiKey,
-                token: token,
-                balance: 0,
-                lastMined: Date.now()
-            };
-
-            saveUsers(users);
-            alert("Registrasi berhasil! Silakan Login.");
-            showLogin();
-        }
-
-        // --- FITUR LOGIN ---
-        function login() {
-            const username = document.getElementById('login-username').value.trim();
-            const password = document.getElementById('login-password').value;
-
-            let users = getUsers();
-            const user = users[username];
-
-            if (!user || user.password !== password) {
-                return alert("ID atau Password salah!");
+            if (tab === 'feed' && !eventSource) {
+                startLiveFeed();
             }
+        }
 
-            currentUserKey = username;
+        // --- 1. WALLET ---
+        async function generateWallet() {
+            const username = prompt("Masukkan Username baru:");
+            const password = prompt("Masukkan Password:");
+            if (!username || !password) return;
+
+            const res = await fetch(`${API_URL}/api/wallet/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (data.error) return alert(data.error);
             
-            document.getElementById('login-view').classList.add('hidden');
-            document.getElementById('dashboard-view').classList.remove('hidden');
-            document.getElementById('user-display').innerText = username;
-            document.getElementById('api-display').innerText = user.apiKey;
-            document.getElementById('token-display').innerText = user.token;
+            alert(`Wallet Berhasil Dibuat!\n\nAlamat: ${data.address}\nAPI Key: ${data.apiKey}\nToken: ${data.token}\n\nSimpan informasi ini!`);
+            loginWithCredentials(username, password);
+        }
+
+        async function login() {
+            const username = document.getElementById('login-user').value;
+            const password = document.getElementById('login-pass').value;
+            loginWithCredentials(username, password);
+        }
+
+        async function loginWithCredentials(username, password) {
+            const res = await fetch(`${API_URL}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (data.error) return alert(data.error);
+
+            currentApiKey = data.apiKey;
+            document.getElementById('wallet-login').classList.add('hidden');
+            document.getElementById('wallet-info').classList.remove('hidden');
+            document.getElementById('display-address').innerText = data.address;
+            document.getElementById('display-apikey').innerText = data.apiKey;
+            document.getElementById('display-token').innerText = data.token;
+            updateBalanceUI(data.balance);
             
-            updateBalanceUI(user.balance);
+            // Pindah ke tab mining setelah login
+            switchTab('mining');
             startTicker();
-            loadHistory();
         }
 
         function logout() {
-            currentUserKey = null;
+            currentApiKey = null;
+            if (tickerInterval) clearInterval(tickerInterval);
+            if (eventSource) eventSource.close();
             location.reload();
         }
 
         function updateBalanceUI(balance) {
-            document.getElementById('balance-display').innerText = balance.toFixed(8);
+            document.getElementById('display-balance').innerText = balance.toFixed(8);
         }
 
-        // --- LOGIKA LIVE TICKER ---
+        // --- 2. CLOUD MINING ---
+        async function startMining() {
+            const res = await fetch(`${API_URL}/api/mining/start`, {
+                method: 'POST',
+                headers: { 'x-api-key': currentApiKey }
+            });
+            const data = await res.json();
+            if (data.error) return alert(data.error);
+            document.getElementById('mining-status').innerText = "ONLINE";
+            document.getElementById('mining-status').classList.add('text-emerald-400');
+            startTicker();
+        }
+
+        async function stopMining() {
+            const res = await fetch(`${API_URL}/api/mining/stop`, {
+                method: 'POST',
+                headers: { 'x-api-key': currentApiKey }
+            });
+            document.getElementById('mining-status').innerText = "OFFLINE";
+            document.getElementById('mining-status').classList.remove('text-emerald-400');
+            if (tickerInterval) clearInterval(tickerInterval);
+        }
+
+        async function claimMining() {
+            const res = await fetch(`${API_URL}/api/mining/claim`, {
+                method: 'POST',
+                headers: { 'x-api-key': currentApiKey }
+            });
+            const data = await res.json();
+            if (data.error) return alert(data.error);
+            
+            alert(`Klaim sukses! +${data.amount} MZU`);
+            // Refresh saldo
+            const statusRes = await fetch(`${API_URL}/api/mining/status`, { headers: { 'x-api-key': currentApiKey } });
+            // Update UI balance dari login ulang atau endpoint terpisah
+            location.reload(); 
+        }
+
         function startTicker() {
             if (tickerInterval) clearInterval(tickerInterval);
-            
-            tickerInterval = setInterval(() => {
-                let users = getUsers();
-                const user = users[currentUserKey];
-                if (!user) return;
-
-                const now = Date.now();
-                let elapsedSeconds = (now - user.lastMined) / 1000;
-                
-                if (elapsedSeconds > MAX_ACCRUAL_SECONDS) {
-                    elapsedSeconds = MAX_ACCRUAL_SECONDS;
-                    document.getElementById('max-accrual-msg').classList.remove('hidden');
-                    document.getElementById('claim-btn').classList.add('animate-pulse');
-                } else {
-                    document.getElementById('max-accrual-msg').classList.add('hidden');
-                    document.getElementById('claim-btn').classList.remove('animate-pulse');
+            tickerInterval = setInterval(async () => {
+                if (!currentApiKey) return;
+                const res = await fetch(`${API_URL}/api/mining/status`, {
+                    headers: { 'x-api-key': currentApiKey }
+                });
+                const data = await res.json();
+                if (data.status) {
+                    document.getElementById('pending-rewards').innerText = data.pending.toFixed(8);
                 }
-
-                const pendingRewards = elapsedSeconds * RATE_PER_SECOND;
-                document.getElementById('pending-display').innerText = pendingRewards.toFixed(8);
-            }, 1000);
+            }, 2000);
         }
 
-        // --- FUNGSI KLAIM ---
-        function claimCoin() {
-            let users = getUsers();
-            const user = users[currentUserKey];
-            const now = Date.now();
+        // --- 3. TRANSFER (Tambahkan di UI Wallet) ---
+        // (Fungsi transfer bisa diletakkan di tab Wallet dengan form input toAddress dan amount)
+
+        // --- 4. EXPLORER ---
+        async function searchBlockchain() {
+            const query = document.getElementById('search-query').value;
+            if (!query) return;
             
-            let elapsedSeconds = (now - user.lastMined) / 1000;
-            if (elapsedSeconds > MAX_ACCRUAL_SECONDS) elapsedSeconds = MAX_ACCRUAL_SECONDS;
+            const res = await fetch(`${API_URL}/api/explorer/search?query=${query}`);
+            const data = await res.json();
+            const container = document.getElementById('search-result');
+            container.classList.remove('hidden');
 
-            const pendingRewards = elapsedSeconds * RATE_PER_SECOND;
-
-            if (pendingRewards <= 0.00000001) {
-                return alert("Belum ada koin yang terkumpul. Tunggu beberapa detik.");
-            }
-
-            user.balance += pendingRewards;
-            user.lastMined = now;
-            users[currentUserKey] = user;
-            saveUsers(users);
-
-            // Catat transaksi
-            let txs = getTransactions();
-            txs.push({
-                type: "MINING",
-                to: currentUserKey,
-                amount: parseFloat(pendingRewards.toFixed(8)),
-                hash: generateHash(currentUserKey + now),
-                timestamp: new Date().toISOString()
-            });
-            saveTransactions(txs);
-
-            updateBalanceUI(user.balance);
-            document.getElementById('pending-display').innerText = "0.00000000";
-            document.getElementById('max-accrual-msg').classList.add('hidden');
-            document.getElementById('claim-btn').classList.remove('animate-pulse');
-            
-            loadHistory();
-            alert(`Klaim sukses! +${pendingRewards.toFixed(8)} MZU`);
-        }
-
-        // --- FUNGSI TRANSFER ---
-        function transferCoin() {
-            const toUsername = document.getElementById('tx-to').value.trim();
-            const amount = parseFloat(document.getElementById('tx-amount').value);
-
-            if (!toUsername || isNaN(amount) || amount <= 0) return alert("Data transfer tidak valid!");
-
-            let users = getUsers();
-            const sender = users[currentUserKey];
-            const receiver = users[toUsername];
-
-            if (!receiver) return alert("Penerima tidak ditemukan!");
-            if (sender.balance < amount) return alert("Saldo tidak cukup!");
-
-            sender.balance -= amount;
-            receiver.balance += amount;
-            
-            users[currentUserKey] = sender;
-            users[toUsername] = receiver;
-            saveUsers(users);
-
-            // Catat transaksi
-            let txs = getTransactions();
-            txs.push({
-                type: "TRANSFER",
-                from: currentUserKey,
-                to: toUsername,
-                amount: amount,
-                hash: generateHash(currentUserKey + toUsername + amount + Date.now()),
-                timestamp: new Date().toISOString()
-            });
-            saveTransactions(txs);
-
-            updateBalanceUI(sender.balance);
-            document.getElementById('tx-to').value = '';
-            document.getElementById('tx-amount').value = '';
-            showTransfer();
-            loadHistory();
-            alert("Transfer berhasil!");
-        }
-
-        // --- FUNGSI RIWAYAT TRANSAKSI ---
-        function loadHistory() {
-            const txs = getTransactions();
-            const userTxs = txs.filter(tx => tx.from === currentUserKey || tx.to === currentUserKey).reverse();
-            const container = document.getElementById('tx-history');
-            
-            if (userTxs.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 italic">Belum ada transaksi.</p>';
+            if (data.error) {
+                container.innerHTML = `<p class="text-red-400">${data.error}</p>`;
                 return;
             }
 
-            container.innerHTML = userTxs.map(tx => `
-                <div class="glass-card p-2 flex justify-between items-center">
-                    <div>
+            if (data.type === 'transaction') {
+                container.innerHTML = `
+                    <p class="text-emerald-400 font-bold mb-1">Transaksi Ditemukan</p>
+                    <p><span class="text-gray-400">Hash:</span> ${data.data.hash}</p>
+                    <p><span class="text-gray-400">Dari:</span> ${data.data.from || 'Mining'}</p>
+                    <p><span class="text-gray-400">Ke:</span> ${data.data.to}</p>
+                    <p><span class="text-gray-400">Jumlah:</span> ${data.data.amount} MZU</p>
+                    <p><span class="text-gray-400">Waktu:</span> ${new Date(data.data.timestamp).toLocaleString()}</p>
+                `;
+            } else if (data.type === 'wallet') {
+                container.innerHTML = `
+                    <p class="text-purple-400 font-bold mb-1">Wallet Ditemukan</p>
+                    <p><span class="text-gray-400">Alamat:</span> ${data.data.address}</p>
+                    <p><span class="text-gray-400">Username:</span> ${data.data.username}</p>
+                    <p><span class="text-gray-400">Saldo:</span> ${data.data.balance} MZU</p>
+                    <p><span class="text-gray-400">Total TX:</span> ${data.data.totalTx}</p>
+                `;
+            }
+        }
+
+        // --- 5. LIVE FEED (Real-time) ---
+        function startLiveFeed() {
+            eventSource = new EventSource(`${API_URL}/api/explorer/feed`);
+            const feedContainer = document.getElementById('live-feed');
+            let isFirst = true;
+
+            eventSource.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (isFirst) {
+                    feedContainer.innerHTML = '';
+                    isFirst = false;
+                }
+
+                if (data.event === 'new_tx') {
+                    const tx = data.data;
+                    const div = document.createElement('div');
+                    div.className = 'p-2 bg-white/5 rounded-lg border border-white/10';
+                    div.innerHTML = `
                         <p class="font-bold ${tx.type === 'MINING' ? 'text-emerald-400' : 'text-purple-400'}">${tx.type}</p>
-                        <p class="text-[10px] text-gray-400">${new Date(tx.timestamp).toLocaleString()}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-bold">${tx.type === 'MINING' ? '+' : '-'}${tx.amount.toFixed(8)} MZU</p>
-                        <p class="text-[10px] text-gray-500 truncate w-20">${tx.hash.substring(0, 10)}...</p>
-                    </div>
-                </div>
-            `).join('');
+                        <p class="text-[10px] text-gray-400">${tx.from ? 'Dari: ' + tx.from.substring(0,10) + '...' : ''} Ke: ${tx.to.substring(0,10)}...</p>
+                        <p class="text-[10px] text-yellow-300">${tx.amount} MZU</p>
+                    `;
+                    feedContainer.prepend(div);
+                }
+            };
         }
     </script>
 </body>
